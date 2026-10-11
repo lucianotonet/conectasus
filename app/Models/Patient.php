@@ -15,7 +15,7 @@ class Patient extends Model
         'cpf',
         'birth_date',
         'phone',
-        'halth_unit_id',
+        'health_unit_id',
     ];
 
     public function healthUnit() : BelongsTo {
