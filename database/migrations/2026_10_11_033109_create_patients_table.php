@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('cpf', 11)->unique();
             $table->date('birth_date');
-            $table->string('phone', 20)->unique();
+            $table->string('phone', 20)->nullable();
             $table->foreignId('health_unit_id')
                 ->constrained('health_units')
                 ->restrictOnDelete(); // Proteção para unidade de saúde não ser excluída se tiver pacientes
