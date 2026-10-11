@@ -15,7 +15,7 @@ class PatientController extends Controller
     {
         $isSearch = $request->filled('search');
 
-        $patients = Patient::with('healthUnit:id,name')
+        $patients = Patient::with('healthUnit:id,name,city')
             ->when($isSearch, function ($query) use ($request) {                
                 $query->where('name', 'like', "%{$request->search}%");
             })
