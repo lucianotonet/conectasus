@@ -20,7 +20,8 @@ class PatientController extends Controller
                 $query->where('name', 'like', "%{$request->search}%");
             })
             ->orderBy('name')
-            ->get();
+            ->paginate(15)
+            ->withQueryString();
 
         return response()->json($patients);
     }

@@ -233,6 +233,32 @@ td.loading {
     padding: 24px;
 }
 
+/*
+*   Paginação 
+*/
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 12px;
+}
+
+.pagination.hidden {
+    display: none;
+}
+
+#pagination-info {
+    color: #737780;
+    font-size: 12px;
+}
+
+.pagination-buttons {
+    display: flex;
+    gap: 6px;
+}
+
 tr.new {
     animation: newItem 3s ease-out forwards;
 }

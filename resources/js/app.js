@@ -24,11 +24,18 @@ async function getHealthUnits() {
 }
 
 /**
- *  Carrega pacientes + busca
+ *  Carrega pacientes + busca + paginação
  */
-async function getPatients() {
+let currentPage = 1;
+let lastPage = 1;
+
+async function getPatients(page = currentPage) {
+    currentPage = page;
+    const params = new URLSearchParams();
     const search = searchInput.value.trim();
-    const query = search ? `?${new URLSearchParams({ search })}` : '';
+    if (search) params.set('search', search);
+    params.set('page', currentPage);
+    const query = `?${params.toString()}`;
 
     const data = await fetch(`/api/patients${query}`, {
         headers: {
@@ -37,8 +44,18 @@ async function getPatients() {
         }
     });
 
-    const patients = await data.json();
+    const result = await data.json();
+    const patients = Array.isArray(result) ? result : (result.data ?? []);
+    lastPage = result.last_page ?? 1;
+    currentPage = result.current_page ?? currentPage;
+
+    // Se a página ficou vazia (ex.: ao excluir último item), volta uma página
+    if (patients.length === 0 && currentPage > 1) {
+        return getPatients(currentPage - 1);
+    }
+
     renderPatientsTable(patients);
+    renderPagination(result);
 }
 
 /**
@@ -48,9 +65,46 @@ function renderPatientsTable(patients) {
     const patientsTable = document.getElementById('patients-list');
     patientsTable.innerHTML = '';
 
+    if (patients.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4;
+        td.className = 'loading';
+        td.textContent = searchInput.value.trim()
+            ? 'Nenhum paciente encontrado para sua busca.'
+            : 'Nenhum paciente cadastrado.';
+        tr.appendChild(td);
+        patientsTable.appendChild(tr);
+        return;
+    }
+
     patients.forEach((patient) => {
         patientsTable.appendChild(insertPatientRow(patient));
     });
+}
+
+/**
+ *  Monta controles de paginação (Anterior/Próxima)
+ */
+function renderPagination(result) {
+    const pagination = document.getElementById('pagination');
+    const info = document.getElementById('pagination-info');
+    const prevBtn = document.getElementById('btn-prev');
+    const nextBtn = document.getElementById('btn-next');
+
+    if (!result || !result.total) {
+        pagination.classList.add('hidden');
+        return;
+    }
+
+    lastPage = result.last_page ?? 1;
+    currentPage = result.current_page ?? currentPage;
+
+    info.textContent = `Página ${currentPage} de ${lastPage} — Total: ${result.total} paciente(s)`;
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= lastPage;
+
+    pagination.classList.toggle('hidden', lastPage <= 1);
 }
 
 function insertPatientRow(patient) {
@@ -123,7 +177,15 @@ const searchInput = document.getElementById('search');
 let searchDebounceTimeout;
 searchInput.addEventListener('input', () => {
     clearTimeout(searchDebounceTimeout);
-    searchDebounceTimeout = setTimeout(getPatients, 400); // pequeno delay
+    searchDebounceTimeout = setTimeout(() => getPatients(1), 400); // pequeno delay
+});
+
+document.getElementById('btn-prev').addEventListener('click', () => {
+    if (currentPage > 1) getPatients(currentPage - 1);
+});
+
+document.getElementById('btn-next').addEventListener('click', () => {
+    if (currentPage < lastPage) getPatients(currentPage + 1);
 });
 
 /**
@@ -175,18 +237,19 @@ form.addEventListener('submit', async (e) => {
         return
     }
 
-    const tableRow = insertPatientRow(data);
-    tableRow.classList.add('new');
-    const patientsTable = document.getElementById('patients-list');
+    // const tableRow = insertPatientRow(data);
+    // tableRow.classList.add('new');
 
     if (isEditing) {
+        await getPatients();
+        const patientsTable = document.getElementById('patients-list');
         const existingRow = [...patientsTable.querySelectorAll('tr')].find((row) =>
-            row.querySelector('button[data-id]')?.dataset.id === payload.id
+            row.querySelector('button[data-id]')?.dataset.id === String(data.id)
         );
-
-        existingRow.replaceWith(tableRow);
+        existingRow?.classList.add('new');
     } else {
-        patientsTable.prepend(tableRow);
+        searchInput.value = '';
+        await getPatients(1);
     }
 
     // Mostra sucesso e oculta o form
@@ -294,7 +357,7 @@ async function deletePatient(id, button) {
     
     const tr = button.closest('tr')
     tr.classList.add('removed')
-    setTimeout(() => tr.remove(), 1000);
+    setTimeout(() => getPatients(), 300);
 }
 
 async function openPatientForm(id) {

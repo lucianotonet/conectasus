@@ -87,6 +87,13 @@
                     </tr>
                 </tbody>
             </table>
+            <div id="pagination" class="pagination hidden">
+                <span id="pagination-info"></span>
+                <div class="pagination-buttons">
+                    <button type="button" id="btn-prev" class="small">Anterior</button>
+                    <button type="button" id="btn-next" class="small">Próxima</button>
+                </div>
+            </div>
         </section>
     </main>
 </body>
