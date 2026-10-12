@@ -63,7 +63,7 @@ function insertPatientRow(patient) {
 
     // Coluna CPF
     var td = document.createElement('td');
-    td.textContent = patient.cpf;
+    td.textContent = formatCPF(patient.cpf);
     tableRow.appendChild(td);
 
     // Coluna unidade
@@ -92,6 +92,15 @@ function insertPatientRow(patient) {
     return tableRow;
 }
 
+function formatCPF(value) {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+
+    return digits
+        .replace(/^(\d{3})(\d)/, '$1.$2')
+        .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+        .replace(/\.(\d{3})(\d)/, '.$1-$2');
+}
+
 /**
  * Listener do input de busca
  */
@@ -107,6 +116,11 @@ searchInput.addEventListener('input', () => {
  */
 const patientsformCard = document.getElementById('patients-form');
 const form = document.getElementById('patient-form');
+const cpfInput = document.getElementById('cpf');
+cpfInput.addEventListener('input', () => {
+    cpfInput.value = formatCPF(cpfInput.value);
+});
+
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearErrors()
@@ -117,7 +131,7 @@ form.addEventListener('submit', async (e) => {
     const payload = {
         id: document.getElementById('patient-id').value,
         name: document.getElementById('name').value,
-        cpf: document.getElementById('cpf').value,
+        cpf: cpfInput.value.replace(/\D/g, ''),
         birth_date: document.getElementById('birth_date').value,
         phone: document.getElementById('phone').value,
         health_unit_id: document.getElementById('health_unit_id').value,
@@ -282,7 +296,7 @@ async function openPatientForm(id) {
 
     document.getElementById('patient-id').value = patient.id;
     document.getElementById('name').value = patient.name;
-    document.getElementById('cpf').value = patient.cpf;
+    cpfInput.value = formatCPF(patient.cpf);
     document.getElementById('birth_date').value = patient.birth_date;
     document.getElementById('phone').value = patient.phone || '';
     document.getElementById('health_unit_id').value = patient.health_unit_id;
