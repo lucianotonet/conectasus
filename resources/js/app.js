@@ -246,9 +246,6 @@ form.addEventListener('submit', async (e) => {
         return
     }
 
-    // const tableRow = insertPatientRow(data);
-    // tableRow.classList.add('new');
-
     if (isEditing) {
         await getPatients();
         const patientsTable = document.getElementById('patients-list');
