@@ -33,7 +33,7 @@ class PatientController extends Controller
     {
         $patient = Patient::create($request->validated());
 
-        return response()->json($patient->load('healthUnit:id,name,city'));
+        return response()->json($patient->load('healthUnit:id,name,city'), 201);
     }
 
     /**
