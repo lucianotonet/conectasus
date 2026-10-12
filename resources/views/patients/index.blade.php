@@ -26,8 +26,11 @@
             </div>
         </header>
 
+        <!-- Feedbacks do form -->
+        <div id="feedback" class="hidden"></div>
+
         <!-- Form cadastro + edição -->
-        <section id="patients-form" class="card">
+        <section id="patients-form" class="card hidden">
             <h2 id="form-title">Cadastrar paciente</h2>
 
             <form id="patient-form">
@@ -35,22 +38,22 @@
 
                 <div class="field">
                     <label for="name">Nome *</label>
-                    <input type="text" name="name" required>
+                    <input type="text" id="name" name="name" required>
                 </div>
 
                 <div class="field">
                     <label for="cpf">CPF *</label>
-                    <input type="text" name="cpf" maxlength="11" minlength="11" required>
+                    <input type="text" id="cpf" name="cpf" maxlength="11" minlength="11" required>
                 </div>
 
                 <div class="field">
                     <label for="birth_date">Nascimento *</label>
-                    <input type="date" name="birth_date" required>
+                    <input type="date" id="birth_date" name="birth_date" required>
                 </div>
 
                 <div class="field">
                     <label for="phone">Telefone</label>
-                    <input type="text" name="phone" maxlength="15">
+                    <input type="text" id="phone" name="phone" maxlength="15">
                 </div>
 
                 <div class="field">

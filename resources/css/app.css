@@ -72,6 +72,11 @@ button.danger {
     color: #b42318;
 }
 
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 /* 
 *   Header + Search 
 */
@@ -145,11 +150,45 @@ select:focus {
     outline: 2px solid rgb(8 126 139 / 14%);
 }
 
+input.error, 
+select.error {
+    border-color: #dc4545;
+}
+
 .actions {
     display: flex;
     grid-column: 1;
     gap: 6px;
     margin-top: 13px;
+}
+
+#feedback {
+    margin-bottom: 10px;
+    padding: 12px 16px;
+    border-radius: 6px;
+}
+
+#feedback.error {
+    border: #a52828 1px solid;
+    background: #fff1f0;
+    color: #a52828;
+}
+
+#feedback.success {
+    border: #fff1f0 1px solid;
+    background: #effcf7;
+    color: #176b50;
+}
+
+#feedback p {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+#feedback ul li {
+    list-style-type: disc;
+    margin-left: 16px;
 }
 
 /*
@@ -192,4 +231,18 @@ td button + button {
 td.loading {
     text-align: center;
     padding: 24px;
+}
+
+tr.new {
+    animation: newItem 3s ease-out forwards;
+}
+
+@keyframes newItem {
+    from {
+        background-color: #ffec7e;
+    }
+
+    to {
+        background-color: transparent;
+    }
 }
