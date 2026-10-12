@@ -60,6 +60,6 @@ class PatientController extends Controller
     {
         $patient->delete();
 
-        return response()->json(['message' => "Paciente excluído com sucesso."]);
+        return response()->json(['message' => "Paciente {$patient->name} excluído com sucesso."]);
     }
 }

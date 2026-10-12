@@ -237,6 +237,10 @@ tr.new {
     animation: newItem 3s ease-out forwards;
 }
 
+tr.removed {
+    animation: removedItem 1s ease-out forwards;
+}
+
 @keyframes newItem {
     from {
         background-color: #ffec7e;
@@ -244,5 +248,15 @@ tr.new {
 
     to {
         background-color: transparent;
+    }
+}
+
+@keyframes removedItem {
+    from {
+        background-color: transparent;
+    }
+    
+    to {
+        background-color: #ff7e7e;
     }
 }

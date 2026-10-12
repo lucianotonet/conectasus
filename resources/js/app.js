@@ -73,15 +73,18 @@ function insertPatientRow(patient) {
 
     // Coluna ações
     var actions = document.createElement('td');
-    
+
     var editBtn = document.createElement('button');
     editBtn.textContent = 'Editar';
     editBtn.className = 'small';
     editBtn.dataset.id = patient.id;
+    editBtn.dataset.action = 'edit';
 
     var deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Excluir';
     deleteBtn.className = 'small danger';
+    deleteBtn.dataset.id = patient.id;
+    deleteBtn.dataset.action = 'delete';
 
     actions.append(editBtn, deleteBtn);
     tableRow.appendChild(actions);
@@ -155,7 +158,10 @@ form.addEventListener('submit', async (e) => {
 
     // Mostra sucesso e oculta o form
     patientsformCard.classList.add('hidden');
-    showSuccess(isEditing)
+    showSuccess(isEditing
+        ? 'Paciente atualizado com sucesso.'
+        : 'Paciente cadastrado com sucesso.'
+    );
     form.reset();
 });
 
@@ -197,15 +203,13 @@ function clearErrors() {
 }
 
 /** Mostra mensagens de sucesso */
-function showSuccess(isEditing = false) {
+function showSuccess(message) {
     const feedback = document.getElementById('feedback');
     feedback.innerHTML = "";
     feedback.classList.remove("hidden", "error")
     feedback.classList.add("success")
     const p = document.createElement('p');
-    p.textContent = isEditing
-        ? "Paciente atualizado com sucesso."
-        : "Paciente cadastrado com sucesso."
+    p.textContent = message;
     feedback.appendChild(p);
 }
 
@@ -228,9 +232,37 @@ document.getElementById('patients-list').addEventListener('click', (event) => {
     const button = event.target.closest('button[data-id]');
     if (!button) return;
 
-    const { id } = button.dataset;
-    openPatientForm(id);
+    const { id, action } = button.dataset;
+    if (action === 'delete') deletePatient(id, button);
+    else openPatientForm(id);
 });
+
+async function deletePatient(id, button) {
+    const patientName = button.closest('tr').cells[0].textContent;
+    if (!window.confirm(`Tem certeza que deseja excluir o paciente ${patientName}?`)) {
+        return;
+    }
+
+    const response = await fetch(`/api/patients/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+        showRequestError(data.message || 'Não foi possível excluir o paciente.');
+        return;
+    }
+
+    showSuccess(data.message);
+    
+    const tr = button.closest('tr')
+    tr.classList.add('removed')
+    setTimeout(() => tr.remove(), 1000);
+}
 
 async function openPatientForm(id) {
     clearErrors();
