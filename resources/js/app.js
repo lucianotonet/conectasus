@@ -232,6 +232,15 @@ form.addEventListener('submit', async (e) => {
 
     saveBtn.disabled = false;
 
+    if (response.status === 404) {
+        // O registro foi excluído enquanto o form estava aberto
+        patientsformCard.classList.add('hidden');
+        form.reset();
+        showRequestError(data.message || 'Este paciente não existe mais. Atualizando a lista...');
+        await getPatients();
+        return
+    }
+
     if (!response.ok) {
         showErrors(data)
         return
