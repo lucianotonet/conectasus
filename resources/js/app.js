@@ -1,7 +1,9 @@
 'use strict';
 
-// Carrega unidades e monta select
-async function loadHealthUnits() {
+/**
+ * Carrega unidades e monta select 
+ */
+async function getHealthUnits() {
     const data = await fetch('/api/health-units', {
         headers: {
             'Accept': 'application/json',
@@ -21,17 +23,28 @@ async function loadHealthUnits() {
     });
 }
 
-/* Carrega pacientes e monta tabela */
-async function loadPatients() {
-    const data = await fetch('/api/patients', {
+/**
+ *  Carrega pacientes + busca
+ */
+async function getPatients() {
+    const search = searchInput.value.trim();
+    const query = search ? `?${new URLSearchParams({ search })}` : '';
+
+    const data = await fetch(`/api/patients${query}`, {
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }
     });
-    
+
     const patients = await data.json();
-    
+    renderPatientsTable(patients);
+}
+
+/**
+ *  Monta tabela de pacientes
+ */
+function renderPatientsTable(patients) {
     const patientsTable = document.getElementById('patients-list');
     patientsTable.innerHTML = '';
 
@@ -42,7 +55,7 @@ async function loadPatients() {
         var td = document.createElement('td');
         td.textContent = patient.name;
         tableRow.appendChild(td);
-        
+
         // Coluna CPF
         var td = document.createElement('td');
         td.textContent = patient.cpf;
@@ -71,5 +84,18 @@ async function loadPatients() {
     });
 }
 
-await loadHealthUnits();
-await loadPatients();
+/**
+ * Listener do input de busca
+ */
+const searchInput = document.getElementById('search');
+let searchDebounceTimeout;
+searchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounceTimeout);
+    searchDebounceTimeout = setTimeout(getPatients, 400); // pequeno delay
+});
+
+/**
+ * Inicializa
+ */
+await getHealthUnits();
+await getPatients();
