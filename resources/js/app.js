@@ -101,6 +101,21 @@ function formatCPF(value) {
         .replace(/\.(\d{3})(\d)/, '.$1-$2');
 }
 
+function formatPhone(value) {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 2) {
+        return digits.length === 2 ? `(${digits}) ` : `(${digits}`;
+    }
+
+    const areaCode = digits.slice(0, 2);
+    const number = digits.slice(2);
+    const subscriberLength = digits.length > 10 ? 5 : 4;
+    const subscriber = number.slice(0, subscriberLength);
+    const suffix = number.slice(subscriberLength);
+
+    return `(${areaCode}) ${subscriber}${suffix ? `-${suffix}` : ''}`;
+}
+
 /**
  * Listener do input de busca
  */
@@ -120,6 +135,10 @@ const cpfInput = document.getElementById('cpf');
 cpfInput.addEventListener('input', () => {
     cpfInput.value = formatCPF(cpfInput.value);
 });
+const phoneInput = document.getElementById('phone');
+phoneInput.addEventListener('input', () => {
+    phoneInput.value = formatPhone(phoneInput.value);
+});
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -133,7 +152,7 @@ form.addEventListener('submit', async (e) => {
         name: document.getElementById('name').value,
         cpf: cpfInput.value.replace(/\D/g, ''),
         birth_date: document.getElementById('birth_date').value,
-        phone: document.getElementById('phone').value,
+        phone: phoneInput.value.replace(/\D/g, ''),
         health_unit_id: document.getElementById('health_unit_id').value,
     };
     const isEditing = Boolean(payload.id);
@@ -298,7 +317,7 @@ async function openPatientForm(id) {
     document.getElementById('name').value = patient.name;
     cpfInput.value = formatCPF(patient.cpf);
     document.getElementById('birth_date').value = patient.birth_date;
-    document.getElementById('phone').value = patient.phone || '';
+    phoneInput.value = formatPhone(patient.phone || '');
     document.getElementById('health_unit_id').value = patient.health_unit_id;
     document.getElementById('form-title').textContent = 'Editar paciente';
     patientsformCard.classList.remove('hidden');
