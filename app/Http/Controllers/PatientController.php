@@ -50,7 +50,7 @@ class PatientController extends Controller
     {
         $patient->update($request->validated());
 
-        return response()->json($patient->load('healthUnit:id,name'));
+        return response()->json($patient->load('healthUnit:id,name,city'));
     }
 
     /**

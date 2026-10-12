@@ -49,39 +49,44 @@ function renderPatientsTable(patients) {
     patientsTable.innerHTML = '';
 
     patients.forEach((patient) => {
-        const tableRow = document.createElement('tr');
-
-        // Coluna nome
-        var td = document.createElement('td');
-        td.textContent = patient.name;
-        tableRow.appendChild(td);
-
-        // Coluna CPF
-        var td = document.createElement('td');
-        td.textContent = patient.cpf;
-        tableRow.appendChild(td);
-
-        // Coluna unidade
-        var td = document.createElement('td');
-        td.textContent = patient.health_unit.name + " - " + patient.health_unit.city;
-        tableRow.appendChild(td);
-
-        // Coluna ações
-        var actions = document.createElement('td');
-
-        var editBtn = document.createElement('button');
-        editBtn.textContent = 'Editar';
-        editBtn.className = 'small';
-
-        var deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Excluir';
-        deleteBtn.className = 'small danger';
-
-        // Monta tabela
-        actions.append(editBtn, deleteBtn);
-        tableRow.appendChild(actions);
-        patientsTable.appendChild(tableRow);
+        patientsTable.appendChild(insertPatientRow(patient));
     });
+}
+
+function insertPatientRow(patient) {
+    const tableRow = document.createElement('tr');
+
+    // Coluna nome
+    var td = document.createElement('td');
+    td.textContent = patient.name;
+    tableRow.appendChild(td);
+
+    // Coluna CPF
+    var td = document.createElement('td');
+    td.textContent = patient.cpf;
+    tableRow.appendChild(td);
+
+    // Coluna unidade
+    var td = document.createElement('td');
+    td.textContent = `${patient.health_unit.name} - ${patient.health_unit.city}`;
+    tableRow.appendChild(td);
+
+    // Coluna ações
+    var actions = document.createElement('td');
+    
+    var editBtn = document.createElement('button');
+    editBtn.textContent = 'Editar';
+    editBtn.className = 'small';
+    editBtn.dataset.id = patient.id;
+
+    var deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Excluir';
+    deleteBtn.className = 'small danger';
+
+    actions.append(editBtn, deleteBtn);
+    tableRow.appendChild(actions);
+
+    return tableRow;
 }
 
 /**
@@ -114,63 +119,43 @@ form.addEventListener('submit', async (e) => {
         phone: document.getElementById('phone').value,
         health_unit_id: document.getElementById('health_unit_id').value,
     };
+    const isEditing = Boolean(payload.id);
 
-    const response = await fetch(`/api/patients`, {
+    const response = await fetch(isEditing ? `/api/patients/${payload.id}` : '/api/patients', {
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         },
-        method: 'POST',
+        method: isEditing ? 'PUT' : 'POST',
         body: JSON.stringify(payload),
     });
 
     const data = await response.json();
-    saveBtn.disabled = false
+
+    saveBtn.disabled = false;
 
     if (!response.ok) {
         showErrors(data)
         return
     }
 
+    const tableRow = insertPatientRow(data);
+    tableRow.classList.add('new');
     const patientsTable = document.getElementById('patients-list');
 
-    const tableRow = document.createElement('tr');
+    if (isEditing) {
+        const existingRow = [...patientsTable.querySelectorAll('tr')].find((row) =>
+            row.querySelector('button[data-id]')?.dataset.id === payload.id
+        );
 
-    // Coluna nome
-    var td = document.createElement('td');
-    td.textContent = data.name;
-    tableRow.appendChild(td);
-
-    // Coluna CPF
-    var td = document.createElement('td');
-    td.textContent = data.cpf;
-    tableRow.appendChild(td);
-
-    // Coluna unidade
-    var td = document.createElement('td');
-    td.textContent = data.health_unit.name + " - " + data.health_unit.city;
-    tableRow.appendChild(td);
-
-    // Coluna ações
-    var actions = document.createElement('td');
-
-    var editBtn = document.createElement('button');
-    editBtn.textContent = 'Editar';
-    editBtn.className = 'small';
-
-    var deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Excluir';
-    deleteBtn.className = 'small danger';
-
-    // Insere o novo item no topo da tabela
-    actions.append(editBtn, deleteBtn);
-    tableRow.classList.add('new');
-    tableRow.appendChild(actions);
-    patientsTable.prepend(tableRow);
+        existingRow.replaceWith(tableRow);
+    } else {
+        patientsTable.prepend(tableRow);
+    }
 
     // Mostra sucesso e oculta o form
     patientsformCard.classList.add('hidden');
-    showSuccess()
+    showSuccess(isEditing)
     form.reset();
 });
 
@@ -212,19 +197,25 @@ function clearErrors() {
 }
 
 /** Mostra mensagens de sucesso */
-function showSuccess() {
+function showSuccess(isEditing = false) {
     const feedback = document.getElementById('feedback');
     feedback.innerHTML = "";
     feedback.classList.remove("hidden", "error")
     feedback.classList.add("success")
     const p = document.createElement('p');
-    p.textContent = "Paciente cadastrado com sucesso."
+    p.textContent = isEditing
+        ? "Paciente atualizado com sucesso."
+        : "Paciente cadastrado com sucesso."
     feedback.appendChild(p);
 }
 
 document.getElementById('btn-new').addEventListener('click', () => {
     clearErrors();
+    form.reset();
+    document.getElementById('patient-id').value = '';
+    document.getElementById('form-title').textContent = 'Cadastrar paciente';
     patientsformCard.classList.remove('hidden');
+    document.getElementById('name').focus();
 });
 
 document.getElementById('btn-cancel').addEventListener('click', () => {
@@ -232,6 +223,52 @@ document.getElementById('btn-cancel').addEventListener('click', () => {
     form.reset();
     patientsformCard.classList.add('hidden');
 });
+
+document.getElementById('patients-list').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-id]');
+    if (!button) return;
+
+    const { id } = button.dataset;
+    openPatientForm(id);
+});
+
+async function openPatientForm(id) {
+    clearErrors();
+
+    const response = await fetch(`/api/patients/${id}`, {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    });
+    const patient = await response.json();
+
+    if (!response.ok) {
+        showRequestError(patient.message || 'Não foi possível carregar os dados do paciente.');
+        return;
+    }
+
+    document.getElementById('patient-id').value = patient.id;
+    document.getElementById('name').value = patient.name;
+    document.getElementById('cpf').value = patient.cpf;
+    document.getElementById('birth_date').value = patient.birth_date;
+    document.getElementById('phone').value = patient.phone || '';
+    document.getElementById('health_unit_id').value = patient.health_unit_id;
+    document.getElementById('form-title').textContent = 'Editar paciente';
+    patientsformCard.classList.remove('hidden');
+    document.getElementById('name').focus();
+}
+
+function showRequestError(message) {
+    const feedback = document.getElementById('feedback');
+    feedback.innerHTML = '';
+    feedback.classList.remove('hidden', 'success');
+    feedback.classList.add('error');
+
+    const p = document.createElement('p');
+    p.textContent = message;
+    feedback.appendChild(p);
+}
 
 /**
  * Inicializa
