@@ -43,7 +43,7 @@
 
                 <div class="field">
                     <label for="cpf">CPF *</label>
-                    <input type="text" id="cpf" name="cpf" maxlength="11" minlength="11" required>
+                    <input type="text" id="cpf" name="cpf" maxlength="14" minlength="11" required>
                 </div>
 
                 <div class="field">
